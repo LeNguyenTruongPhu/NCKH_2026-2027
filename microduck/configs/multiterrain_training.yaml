@@ -1,0 +1,347 @@
+# Multi-Terrain Training Configuration
+# For training Microduck to walk on sand, gravel, and snow
+
+project:
+  name: "multiterrain_walking"
+  description: "Policy for walking on sand, gravel, and snow without falling"
+  author: "Microduck Team"
+  version: "1.0.0"
+
+# Training hyperparameters
+training:
+  # Total environment steps
+  total_timesteps: 10000000
+
+  # PPO learning rate
+  learning_rate: 1.0e-4
+
+  # Number of parallel environments
+  num_envs: 32
+
+  # Batch size for PPO updates
+  batch_size: 256
+
+  # Number of PPO epochs per update
+  n_epochs: 20
+
+  # PPO clip ratio (conservative to prevent divergence)
+  clip_ratio: 0.2
+
+  # Entropy coefficient (exploration bonus)
+  entropy_coeff: 0.01
+
+  # Value function loss coefficient
+  value_loss_coeff: 0.5
+
+  # Random seed for reproducibility
+  seed: 42
+
+  # Gradient clipping value
+  max_grad_norm: 0.5
+
+# Network architecture
+network:
+  # Hidden layer sizes for policy and value networks
+  hidden_sizes: [256, 256]
+
+  # Activation function
+  activation: "relu"
+
+  # Use batch normalization
+  use_batch_norm: false
+
+# Domain randomization configuration
+randomization:
+  enabled: true
+
+  # Friction coefficient randomization
+  friction:
+    enabled: true
+    # Sand: 0.9-1.3, Gravel: 0.4-1.0, Snow: 0.1-0.4
+    # Unified range spans all terrains
+    range: [0.1, 1.3]
+    schedule: "curriculum"  # curriculum or constant
+
+  # Terrain roughness (height variation)
+  terrain:
+    enabled: true
+    roughness_range: [0.0, 0.08]  # Smooth to very rough
+    type: "random"  # random, sand, gravel, snow, smooth
+    frequency: 0.5  # Wave frequency
+    octaves: 2  # Perlin noise complexity
+    scale: 0.1
+
+  # Robot mass variation (±50%)
+  mass:
+    enabled: true
+    range: [0.5, 2.0]
+
+  # Inertia randomization
+  inertia:
+    enabled: true
+    scale_range: [0.8, 1.2]
+
+  # Wind force randomization
+  wind:
+    enabled: true
+    force_range: [0.0, 1.0]
+    direction_variation: true
+
+  # Servo response delay and torque variation
+  servo:
+    enabled: true
+    response_delay_range: [0.0, 0.01]
+    max_torque_range: [0.9, 1.1]
+
+  # Initial joint angle randomization
+  initial_state:
+    enabled: true
+    position_noise: 0.05
+    velocity_noise: 0.02
+
+# Curriculum learning
+curriculum:
+  enabled: true
+
+  # Progressive difficulty schedule
+  schedule:
+    - name: "easy"
+      steps: 2000000
+      friction_range: [0.8, 1.0]
+      terrain_roughness_range: [0.0, 0.01]
+      mass_range: [0.8, 1.2]
+      wind_force_range: [0.0, 0.2]
+      description: "Smooth terrain, gentle randomization"
+
+    - name: "medium"
+      steps: 3000000
+      friction_range: [0.5, 1.0]
+      terrain_roughness_range: [0.01, 0.04]
+      mass_range: [0.6, 1.5]
+      wind_force_range: [0.0, 0.5]
+      description: "Medium difficulty, moderate randomization"
+
+    - name: "hard"
+      steps: 5000000
+      friction_range: [0.1, 1.3]
+      terrain_roughness_range: [0.0, 0.08]
+      mass_range: [0.5, 2.0]
+      wind_force_range: [0.0, 1.0]
+      description: "All terrains, full randomization"
+
+# Terrain-specific configurations
+terrains:
+  # Sand: high friction, soft surface, sinking
+  sand:
+    friction_range: [0.9, 1.3]
+    roughness: 0.04
+    soft_ground: true
+    sinking_depth: 0.02
+    damping: 1.5
+
+  # Gravel: uneven, unstable, sliding
+  gravel:
+    friction_range: [0.4, 1.0]
+    roughness: 0.08
+    type: "rocky"
+    sliding: true
+    randomize_contact: true
+
+  # Snow: low friction, deformable, slippery
+  snow:
+    friction_range: [0.1, 0.4]
+    roughness: 0.03
+    deformable: true
+    sinking: 0.01
+    requires_high_step_frequency: true
+
+  # Default: reference surface
+  default:
+    friction_range: [0.8, 0.8]
+    roughness: 0.0
+    type: "smooth"
+
+# Reward function configuration
+reward:
+  # Forward velocity reward (primary objective)
+  velocity_weight: 1.0
+  velocity_scale: 0.25  # Target velocity
+
+  # Stability and balance rewards
+  stability_weight: 0.5
+
+  # Energy efficiency penalty
+  energy_weight: 0.1
+
+  # Terrain-specific bonuses
+  terrain_bonus: 0.2
+
+  # Action smoothness
+  action_smoothness_weight: 0.05
+
+  # Height bonus (prefer walking upright)
+  height_weight: 0.1
+
+  # Fall penalty (large negative reward)
+  fall_penalty: -10.0
+
+  # Survive bonus (small positive reward for not falling)
+  survive_bonus: 0.01
+
+# Physics simulation
+simulation:
+  # Simulation timestep
+  timestep: 0.002  # 500 Hz
+
+  # Substeps per control step (50 Hz control)
+  substeps: 10
+
+  # Solver type
+  solver: "pgs"  # pgs or cg
+
+  # Iterations
+  iterations: 100
+
+  # Friction cone approximation
+  cone: 4
+
+# Observation space
+observation:
+  # Include joint positions
+  include_positions: true
+
+  # Include joint velocities
+  include_velocities: true
+
+  # Include IMU data (gyro, accel)
+  include_imu: true
+
+  # Include foot contact sensors
+  include_contact: true
+
+  # Include command history
+  include_command: true
+
+  # Observation normalization
+  normalize: true
+
+# Action space
+action:
+  # Joint velocity targets
+  type: "velocity"
+
+  # Action scaling (for servo motors)
+  scale: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+
+  # Joint limits (in radians)
+  joint_limits:
+    min: [-1.57, -1.57, -1.57, -1.57, -1.57, -1.57, -0.785, -0.785, -0.785, -0.785, -0.785, -0.785, -1.57, -1.57, -0.785]
+    max: [1.57, 1.57, 1.57, 1.57, 1.57, 1.57, 0.785, 0.785, 0.785, 0.785, 0.785, 0.785, 1.57, 1.57, 0.785]
+
+# Evaluation
+evaluation:
+  # Evaluation frequency (every N training steps)
+  eval_freq: 50000
+
+  # Number of evaluation episodes
+  eval_episodes: 10
+
+  # Evaluation terrains
+  eval_terrains: ["sand", "gravel", "snow", "default"]
+
+  # Success criteria
+  success_criteria:
+    max_fall_rate: 0.05  # Max 5% fall rate
+    min_avg_return: 200
+    min_episode_length: 40  # 40 steps minimum
+
+  # Save best model based on
+  save_best_metric: "eval_return"  # eval_return or fall_rate
+
+# Checkpointing
+checkpointing:
+  # Save checkpoint every N steps
+  save_freq: 100000
+
+  # Keep last N checkpoints
+  keep_last_n: 5
+
+  # Save best model
+  save_best: true
+
+  # Best model metric
+  best_metric: "eval_return"
+
+# Logging
+logging:
+  # Tensorboard logging
+  use_tensorboard: true
+
+  # Log directory
+  log_dir: "./logs"
+
+  # Logging frequency (every N steps)
+  log_freq: 1000
+
+  # Metrics to log
+  metrics:
+    - "train/loss"
+    - "train/value_loss"
+    - "train/policy_loss"
+    - "train/entropy"
+    - "train/approx_kl"
+    - "eval/return"
+    - "eval/fall_rate"
+    - "eval/episode_length"
+
+# Hardware
+hardware:
+  # Use GPU if available
+  use_gpu: true
+
+  # GPU device ID
+  gpu_id: 0
+
+  # CPU number of threads
+  num_cpu_threads: 4
+
+  # Memory per environment (MB)
+  memory_per_env: 500
+
+# Resume training
+resume:
+  # Path to checkpoint to resume from
+  checkpoint_path: null
+
+  # Start from epoch (if resuming)
+  start_epoch: 0
+
+# Experiment tracking
+experiment:
+  # Experiment name for logging
+  name: "multiterrain_v1"
+
+  # Experiment tags
+  tags:
+    - "multiterrain"
+    - "sand"
+    - "gravel"
+    - "snow"
+    - "robust"
+
+  # Experiment description
+  description: "Train unified policy for walking on different terrains"
+
+# Testing configuration
+testing:
+  # Test on these terrains
+  terrains: ["sand", "gravel", "snow", "default"]
+
+  # Episodes per terrain
+  episodes_per_terrain: 10
+
+  # Render during testing
+  render: false
+
+  # Random seed for testing
+  seed: 123
