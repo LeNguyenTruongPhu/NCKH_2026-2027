@@ -205,12 +205,3 @@ trước khi dùng.
 - Thêm **khớp mỏ** vào mô hình MuJoCo theo robot thật và huấn luyện kỹ năng ngậm đồ thật.
 - Kiểm chứng trên **robot thật**.
 
-## Ghi công và giấy phép
-
-- Runtime Microduck: © [Pollen Robotics](https://github.com/pollen-robotics/microduck), giấy phép
-  **Apache-2.0** (bản sao đầy đủ ở [`microduck/LICENSE`](microduck/LICENSE)). Repo này gồm mã nguồn của
-  Pollen Robotics kèm các thay đổi của đề tài liệt kê ở trên.
-- Huấn luyện: [`microduck_rl`](https://github.com/pollen-robotics/microduck_rl),
-  [mjlab](https://github.com/mujocolab/mjlab), [MuJoCo](https://mujoco.org), rsl_rl (PPO).
-- Policy chính thức (`seed-v1`, `ground_pick`, ...):
-  [`pollen-robotics/microduck-policies`](https://huggingface.co/pollen-robotics/microduck-policies).
