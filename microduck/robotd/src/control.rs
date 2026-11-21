@@ -487,6 +487,7 @@ impl Controller {
             // what made the kick and roulade arms the same arm.
             let def = self.skills.skills.get(active.index);
             let twist = def.map_or([0.0; 3], |d| match active.phase {
+                SkillPhase::Holding if d.live_twist => command.twist,
                 SkillPhase::Holding => d.command,
                 SkillPhase::Unwinding => d.unwind,
             });
@@ -547,6 +548,7 @@ impl Controller {
             &DEFAULT_POSITION,
             &self.last_action,
             &effective,
+            &sensors.terrain,
         );
 
         let action = self.policy.infer(&observation, net)?;

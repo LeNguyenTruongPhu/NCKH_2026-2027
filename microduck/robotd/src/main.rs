@@ -3892,6 +3892,9 @@ fn set_skill_request(
             .chain
             .or(existing.as_ref().map(|s| s.chain))
             .unwrap_or(false),
+        // Not on the wire: a gait-like skill is a config decision, and reconfiguring its timing
+        // must not quietly turn its steering off.
+        live_twist: existing.as_ref().is_some_and(|s| s.live_twist),
         params: params::SkillOverrides {
             action_scale: p
                 .action_scale

@@ -49,12 +49,40 @@ DUCKS="${DUCK_SIM_DUCKS:-1}"
 # exactly what the duck has. The default is a bare floor, where there is nothing to see.
 SCENE="${DUCK_SIM_SCENE:-}"
 
+# Which robot. `biped60` is BIPED-C3, the 60 cm biped in the RL repo's robot/biped60/: its own
+# scenes (the duck's, every length doubled), a STAND start because it has no stand-up policy, and
+# nothing but its walking policy — from $REPO/policies-biped60, or DUCK_SIM_POLICIES. Same joints,
+# same names, same home pose as the duck, so robotd needs no other change.
+#
+#   DUCK_SIM_SCENE=obstacles scripts/duck-sim
+#
+# On the empty `stage` it runs the dance policy (alpha_dance.onnx) in the walking slot — it walks
+# too, and it follows the trunk height/roll/pitch that `scripts/biped60-dance.py` streams; any
+# other file in the policy folder with DUCK_SIM_WALK_POLICY=<file>. With a roulade.onnx there, the
+# forward roll is a skill: `scripts/duck-sim ctl robot do roulade`.
+#
+#   DUCK_SIM_SCENE=stage scripts/duck-sim      # then scripts/biped60-dance.py
+#
+# `duck` is the Microduck, whose model, scenes and policies were moved to ~/duck_backup_2026-11-18/
+# on 2026-11-19; it runs again once they are moved back (that folder's MOVED.txt lists them).
+ROBOT="${DUCK_SIM_ROBOT:-biped60}"
+case "$ROBOT" in
+    duck)    MODELS=microduck; DEFAULT_KEYFRAME=SIT; STANDING_Z=0.12
+             [ -d "$RL/src/mjlab_microduck/robot/microduck" ] || {
+                 echo "duck-sim: the duck's model is in ~/duck_backup_2026-11-18/ now — see MOVED.txt there" >&2; exit 1; } ;;
+    biped60) MODELS=biped60; DEFAULT_KEYFRAME=STAND; STANDING_Z=0.37 ;;
+    *)       echo "duck-sim: DUCK_SIM_ROBOT is duck or biped60, not '$ROBOT'" >&2; exit 1 ;;
+esac
+
 # Which ducks have an eye. `a`, `a,c`, or `all`; empty for none, which is the default because a
 # rendered frame costs 12 ms against 0.3 ms to step four ducks' physics — one camera is a third of a
 # core and four is most of one. Each duck with a camera also gets a `mediad`, and its console is at
 # 8080 + its index.
 CAMERAS="${DUCK_SIM_CAMERAS:-}"
 FRAME_PORT="${DUCK_SIM_FRAME_PORT:-7901}"
+# The camera's picture is steadied against the head's shake (body server `--camera-stabilize`,
+# `camera.Stabilizer`); `off` for the raw, shaking view.
+CAMERA_STABILIZE="${DUCK_SIM_CAMERA_STABILIZE:-on}"
 SOCK="$STATE/duck.sock"
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 
@@ -175,7 +203,25 @@ build_daemons() {
 #
 # A `policies/` beside the repo wins if it has one: that is somebody's own set, and fetching over
 # it would silently swap the gait they are working on.
+# BIPED-C3's walking-slot policy: DUCK_SIM_WALK_POLICY, else the dance policy on the stage when it
+# has been exported, else the walking one.
+walk_policy() {
+    if [ -n "${DUCK_SIM_WALK_POLICY:-}" ]; then
+        printf '%s' "$DUCK_SIM_WALK_POLICY"
+    elif [ "$SCENE" = stage ] && [ -f "$POLICIES/alpha_dance.onnx" ]; then
+        printf 'alpha_dance.onnx'
+    else
+        printf 'alpha_walking.onnx'
+    fi
+}
+
 policies() {
+    if [ "$ROBOT" = biped60 ]; then
+        POLICIES="${DUCK_SIM_POLICIES:-$REPO/policies-biped60}"
+        [ -f "$POLICIES/$(walk_policy)" ] ||
+            die "no BIPED-C3 walking policy at $POLICIES/$(walk_policy). Export one in the RL repo: scripts/export.py Mjlab-Velocity-Flat-Biped60 --checkpoint-file <model_N.pt> --onnx-file <it> --num-envs 1"
+        return 0
+    fi
     if [ -f "$REPO/policies/alpha_stand.onnx" ]; then
         POLICIES="$REPO/policies"
         return 0
@@ -187,6 +233,66 @@ policies() {
     }
     [ -f "$POLICIES/alpha_stand.onnx" ] ||
         die "no policy set in $STATE/policies. It needs the network once, or your own .onnx files in $REPO/policies."
+}
+
+# The [policy] table for robotd. BIPED-C3 has one network: with no standing policy robotd runs the
+# walking one at every speed (it was trained standing as well as walking), and the scale and the
+# low-pass filters are the identity because training applied neither.
+policy_section() {
+    if [ "$ROBOT" = biped60 ]; then
+        # The forward roll runs 7 s: tuck, over, up, settled (it trained in 8 s episodes).
+        roulade="none"
+        [ -f "$POLICIES/roulade.onnx" ] && roulade="$POLICIES/roulade.onnx"
+        cat <<TOML
+[policy]
+enabled = true
+walk = "$POLICIES/$(walk_policy)"
+stand = "none"
+sitstand = "none"
+ground_pick = "none"
+kick_left = "none"
+kick_right = "none"
+roulade = "$roulade"
+action_scale = 1.0
+standing_action_scale = 1.0
+legs_lowpass = 1.0
+head_lowpass = 1.0
+TOML
+        [ "$roulade" = none ] || cat <<TOML
+
+[[policy.skill]]
+name = "roulade"
+path = "$roulade"
+duration = 7.0
+TOML
+        # The stairs specialist (RL repo task Mjlab-Velocity-Stairs-Climb-Biped60): sees the edges
+        # ahead and climbs straight up and down a flight. A client runs it while the robot is on
+        # stairs by sending `robot.do climb` every tick — each 2 s window chains into the next while
+        # the requests keep coming — and steers it with `robot.move` as usual (`live_twist`).
+        # `biped60-goal.py` and `biped60-fetch.py` do that on the course's stairs.
+        if [ -f "$POLICIES/climb.onnx" ]; then cat <<TOML
+
+[[policy.skill]]
+name = "climb"
+path = "$POLICIES/climb.onnx"
+duration = 2.0
+chain = true
+live_twist = true
+TOML
+        fi
+        return
+    fi
+    cat <<TOML
+[policy]
+enabled = true
+walk = "$POLICIES/alpha_walking.onnx"
+stand = "$POLICIES/alpha_stand.onnx"
+sitstand = "$POLICIES/alpha_sitstand.onnx"
+ground_pick = "$POLICIES/alpha_ground_pick.onnx"
+kick_left = "$POLICIES/ball_kick_left.onnx"
+kick_right = "$POLICIES/ball_kick_right.onnx"
+roulade = "$POLICIES/roulade.onnx"
+TOML
 }
 
 up() {
@@ -208,15 +314,7 @@ up() {
     # Every policy named explicitly: `RELEASE_DIR` is /opt/robot/daemon/current, which exists on a
     # robot and not here, and `PolicyParams::resolved` uses a named path verbatim when it has one.
     cat > "$STATE/robotd.toml" <<TOML
-[policy]
-enabled = true
-walk = "$POLICIES/alpha_walking.onnx"
-stand = "$POLICIES/alpha_stand.onnx"
-sitstand = "$POLICIES/alpha_sitstand.onnx"
-ground_pick = "$POLICIES/alpha_ground_pick.onnx"
-kick_left = "$POLICIES/ball_kick_left.onnx"
-kick_right = "$POLICIES/ball_kick_right.onnx"
-roulade = "$POLICIES/roulade.onnx"
+$(policy_section)
 
 # Singing is opt-in, and a room full of ducks that will not sing together is a poor demonstration
 # of a room full of ducks. On a real robot this is a decision someone makes; here it is the point.
@@ -423,7 +521,7 @@ PY
     fi
 
     printf '\n'
-    say "$2 did not stand up (trunk ${trunk}m, standing is about 0.12; gravity z $z)"
+    say "$2 did not stand up (trunk ${trunk}m, standing is about $STANDING_Z; gravity z $z)"
     if grep -q "behind real time" "$STATE/body.log" 2>/dev/null; then
         cat <<'WHY'
   The simulator could not keep real time, and that is almost certainly why. The daemon's loop is
@@ -477,10 +575,13 @@ start_body() {
     # wrapper and left MuJoCo running as an orphan. `setsid` puts the simulator in its own process
     # group, which is what makes stopping it one signal rather than a hunt.
     case "$SCENE" in
-        "")   scene_arg="" ;;
+        "")   scene_arg="--scene $RL/src/mjlab_microduck/robot/$MODELS/scene.xml" ;;
         */*)  scene_arg="--scene $SCENE" ;;
-        *)    scene_arg="--scene $RL/src/mjlab_microduck/robot/microduck/scene_$SCENE.xml" ;;
+        *)    scene_arg="--scene $RL/src/mjlab_microduck/robot/$MODELS/scene_$SCENE.xml" ;;
     esac
+    # Which world is up, for a client in another terminal that was not given DUCK_SIM_SCENE —
+    # `biped60-goal.py` picks its line through the world from this.
+    printf '%s\n' "${SCENE:-floor}" > "$STATE/scene"
     # **The camera flags go with the cameras.** Rendering is newer than the body server, and a
     # build without it has no `--cameras`/`--frame-port` — argparse then refuses the whole
     # invocation over two arguments nobody asked to use, and the duck never starts. Passed only
@@ -488,11 +589,11 @@ start_body() {
     # loudly and about the thing that is missing.
     cam_args=""
     if [ -n "$CAMERAS" ]; then
-        cam_args="--cameras $CAMERAS --frame-port $FRAME_PORT"
+        cam_args="--cameras $CAMERAS --frame-port $FRAME_PORT --camera-stabilize $CAMERA_STABILIZE"
     fi
     # shellcheck disable=SC2086
     $SETSID nohup "$PY_BIN" -m mjlab_microduck.sim.body_server \
-        --port "$PORT" --ducks "$DUCKS" --keyframe "${DUCK_SIM_KEYFRAME:-SIT}" $HEADLESS $scene_arg \
+        --port "$PORT" --ducks "$DUCKS" --keyframe "${DUCK_SIM_KEYFRAME:-$DEFAULT_KEYFRAME}" $HEADLESS $scene_arg \
         $cam_args \
         > "$STATE/body.log" 2>&1 &
     echo $! > "$STATE/body.pid"

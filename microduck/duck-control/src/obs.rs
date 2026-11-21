@@ -24,12 +24,21 @@
 //! ```text
 //! 48..51      3  vx, vy, vyaw
 //! 51..55      4  neck_pitch, head_pitch, head_yaw, head_roll
-//! 55..57      2  body x, y      — always zero, unbound in training
+//! 55          1  body x  — unbound in training: carries terrain[0] (below)
+//! 56          1  body y  — unbound in training: carries terrain[1]
 //! 57          1  body z
 //! 58          1  body roll
 //! 59          1  body pitch
-//! 60          1  body yaw       — always zero, unbound in training
+//! 60          1  body yaw — unbound in training: carries terrain[2]
 //! ```
+//!
+//! **The three unbound slots carry the ground ahead.** No policy was ever trained to follow
+//! body x, y or yaw, so those slots held zero (or a few millimetres of noise in training) and
+//! every blind policy ignores them. A stairs policy that sees (BIPED-C3's stairs_v9 on) reads
+//! them as the edges ahead along its heading — how near the first is (1 at the toes, 0 for none
+//! within reach), its rise, how near the second is: `Sensors::terrain`, which the simulator
+//! measures and a robot without a way to see the ground leaves at zero. Zero is flat ground to
+//! a seeing policy and nothing at all to a blind one, so neither can be fed the wrong thing.
 //!
 //! Two things about that block are easy to get wrong and were confirmed against
 //! `microduck_runtime`'s `control_step` rather than assumed:
@@ -67,6 +76,9 @@ pub const OBS_JOINTS: usize = NUM_JOINTS - 1;
 
 /// Width of the trailing command block.
 pub const COMMAND_LEN: usize = 13;
+
+/// Where `Sensors::terrain` rides: the command block's unbound body x, y and yaw.
+pub const TERRAIN_SLOTS: [usize; 3] = [55, 56, 60];
 
 /// What a client is asking the robot to do, in the form the policy consumes.
 ///
@@ -178,6 +190,7 @@ impl Observation {
         home_pose: &[f64; NUM_JOINTS],
         last_action: &[f32; ACTION_LEN],
         command: &Command,
+        terrain: &[f64; 3],
     ) -> Self {
         let mut data = [0.0f32; OBS_LEN];
 
@@ -217,16 +230,28 @@ impl Observation {
                 command.head[1],
                 command.head[2],
                 command.head[3],
-                0.0, // body x — unbound in training
-                0.0, // body y — unbound
+                terrain[0], // body x — unbound in training: the nearest edge ahead
+                terrain[1], // body y — unbound: that edge's rise
                 command.body.z,
                 command.body.roll,
                 command.body.pitch,
-                0.0, // body yaw — unbound
+                terrain[2], // body yaw — unbound: the next edge
             ],
         );
 
         Self { data }
+    }
+
+    /// The same observation with the terrain slots zeroed — what every policy that does not
+    /// declare `sees_terrain` is fed, whatever the robot measured. A blind policy saw those
+    /// slots as a few millimetres of noise in training (its input normaliser divides by about
+    /// 0.01 there), so a terrain number of 0.5 would reach it as 40: one stair edge in view
+    /// would throw it.
+    pub fn without_terrain(mut self) -> Self {
+        for slot in TERRAIN_SLOTS {
+            self.data[slot] = 0.0;
+        }
+        self
     }
 
     /// Map a policy's 14 outputs onto the 15 joints, leaving the mouth untouched.
@@ -278,6 +303,7 @@ mod tests {
             &DEFAULT_POSITION,
             &last_action,
             &command(),
+            &[0.0; 3],
         )
     }
 
@@ -314,15 +340,42 @@ mod tests {
         assert_eq!(&d[51..55], &[0.4, 0.5, 0.6, 0.7], "head");
     }
 
-    /// Body x, y and yaw are unbound in training. They must be zero regardless of what the
-    /// caller supplies, or the policy sees a signal it was never trained on.
+    /// Body x, y and yaw are unbound in training, so nothing the caller *commands* may reach
+    /// them: with no terrain (flat ground, or a robot that cannot see it) they are zero.
     #[test]
-    fn unbound_body_axes_are_always_zero() {
+    fn unbound_body_axes_are_zero_without_terrain() {
         let obs = build_with(DEFAULT_POSITION, [0.0; ACTION_LEN]);
         let d = obs.as_slice();
         assert_eq!(d[55], 0.0, "body x");
         assert_eq!(d[56], 0.0, "body y");
         assert_eq!(d[60], 0.0, "body yaw");
+    }
+
+    /// The ground ahead lands in those three slots, in order, and moves nothing else.
+    #[test]
+    fn the_terrain_ahead_rides_in_the_unbound_body_axes() {
+        let obs = Observation::build(
+            &imu(),
+            &DEFAULT_POSITION,
+            &[0.0; NUM_JOINTS],
+            &DEFAULT_POSITION,
+            &[0.0; ACTION_LEN],
+            &command(),
+            &[0.25, -0.5, 0.125],
+        );
+        let d = obs.as_slice();
+        assert_eq!(d[55], 0.25, "nearest edge");
+        assert_eq!(d[56], -0.5, "its rise");
+        assert_eq!(d[60], 0.125, "the next edge");
+        assert_eq!(&d[57..60], &[0.8, 0.9, 1.0], "body z, roll, pitch untouched");
+
+        let blind = obs.without_terrain();
+        let b = blind.as_slice();
+        for slot in TERRAIN_SLOTS {
+            assert_eq!(b[slot], 0.0, "slot {slot} zeroed for a blind policy");
+        }
+        assert_eq!(&b[..55], &d[..55], "nothing else changes");
+        assert_eq!(&b[57..60], &d[57..60], "nothing else changes");
     }
 
     /// The body block is ordered z, roll, pitch — *not* z, pitch, roll. The prototype maps

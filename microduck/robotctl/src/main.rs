@@ -3462,6 +3462,9 @@ fn run_policy_skill(
         unwind_s: unwind
             .or_else(|| from_manifest.as_ref().and_then(|m| m.unwind_s))
             .unwrap_or(0.0),
+        // A one-shot added from the command line is a move with its own twist; a gait-like skill
+        // that follows the caller's steering is set in the config by hand.
+        live_twist: false,
         params: robotd_params::SkillOverrides {
             action_scale: from_manifest.as_ref().and_then(|m| m.action_scale),
             ..Default::default()

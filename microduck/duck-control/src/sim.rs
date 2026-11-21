@@ -89,6 +89,9 @@ struct SensorFrame {
     #[serde(default)]
     currents_ma: [f64; NUM_JOINTS],
     imu: ImuFrame,
+    /// The edges ahead (`Sensors::terrain`). A simulator that does not send it is flat ground.
+    #[serde(default)]
+    terrain: [f64; 3],
 }
 
 #[derive(Debug, Deserialize)]
@@ -272,6 +275,7 @@ impl RobotIo for RemoteIo {
                 gravity: frame.imu.gravity,
                 quat: frame.imu.quat,
             },
+            terrain: frame.terrain,
         })
     }
 

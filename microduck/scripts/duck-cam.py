@@ -11,6 +11,12 @@ This is the same stream `mediad` captures — 640x360 UYVY, each frame a four-by
 length and then the bytes — read directly, for a machine where `mediad` does not build (it needs
 GStreamer 1.22) or a session that only wants to look. It needs OpenCV (`python3 -c "import cv2"`).
 
+**Steadied.** Walking, the robot's head shakes (BIPED-C3's swung its camera 7° about where it was
+looking on flat ground, 12° on stairs); the simulator steadies the picture before it is sent, as a
+phone's stabiliser does (`mjlab_microduck/sim/camera.py`, `Stabilizer`): the view's turning
+smoothed, its up-down and sideways bob smoothed across the picture, and the horizon kept level.
+`DUCK_SIM_CAMERA_STABILIZE=off scripts/duck-sim` sends the raw, shaking one.
+
 **Turned upright, as the console turns it.** The head camera is mounted a quarter turn off, and the
 simulated one is rolled the same way on purpose, so a raw frame has the floor down one side.
 `mediad --rotate` (90 clockwise by default) is where that fact lives and what every display

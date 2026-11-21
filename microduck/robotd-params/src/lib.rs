@@ -965,6 +965,14 @@ pub struct SkillDef {
     #[serde(default)]
     pub chain: bool,
 
+    /// Feed the network the caller's live twist (`robot.move`, smoothed as for walking) instead
+    /// of `command` while the window runs — a skill that is a different gait rather than a move.
+    /// BIPED-C3's stairs specialist (`climb`) is one: a client starts it at the foot of a flight
+    /// and keeps steering it up and down as it steers the walking policy; a fixed twist would
+    /// leave twelve seconds of stairs with no way to correct a drift towards the edge.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub live_twist: bool,
+
     /// What this skill changes about the robot while it runs, and only while it runs.
     #[serde(default)]
     pub params: SkillOverrides,
@@ -1320,6 +1328,7 @@ fn fallback_skills() -> Vec<SkillDef> {
         command: [0.0; 3],
         unwind: [0.0; 3],
         unwind_s: 0.0,
+        live_twist: false,
         params: SkillOverrides::default(),
     };
     vec![
@@ -1334,6 +1343,7 @@ fn fallback_skills() -> Vec<SkillDef> {
             command: [0.0; 3],
             unwind: [0.0; 3],
             unwind_s: 0.0,
+            live_twist: false,
             params: SkillOverrides::default(),
         },
         kick("kick_left", "ball_kick_left.onnx"),

@@ -460,6 +460,9 @@ struct Network {
     action_name: String,
     path: PathBuf,
     digest: [u8; 32],
+    /// The model's `sees_terrain` metadata is `true`: it was trained with the ground ahead in
+    /// the observation's terrain slots (`obs::TERRAIN_SLOTS`). Anything else is fed zeros there.
+    sees_terrain: bool,
 }
 
 struct LstmState {
@@ -477,6 +480,11 @@ impl Network {
 
     fn run(&mut self, observation: &Observation) -> Result<[f32; ACTION_LEN], PolicyError> {
         let fail = |e: String| PolicyError::Inference(format!("{}: {e}", self.path.display()));
+        let observation = &if self.sees_terrain {
+            *observation
+        } else {
+            observation.without_terrain()
+        };
         if !observation.as_slice().iter().all(|v| v.is_finite()) {
             return Err(fail("non-finite observation".into()));
         }
@@ -677,12 +685,23 @@ fn open(path: &Path) -> Result<Network, PolicyError> {
     } else {
         None
     };
+    // Read before `session` moves into the network. Missing or unreadable metadata is a blind
+    // policy, which is every policy that predates the terrain slots.
+    let sees_terrain = session
+        .metadata()
+        .ok()
+        .and_then(|m| m.custom("sees_terrain"))
+        .is_some_and(|v| v.trim().eq_ignore_ascii_case("true"));
+    if sees_terrain {
+        tracing::info!(path = %path.display(), "this policy sees the ground ahead (terrain slots live)");
+    }
     Ok(Network {
         session,
         state,
         action_name,
         path: path.to_owned(),
         digest,
+        sees_terrain,
     })
 }
 

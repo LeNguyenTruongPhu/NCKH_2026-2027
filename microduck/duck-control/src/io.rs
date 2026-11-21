@@ -22,6 +22,11 @@ pub struct Sensors {
     /// velocity, and every consumer so far wants load, not direction.
     pub currents_ma: [f64; NUM_JOINTS],
     pub imu: ImuData,
+    /// The edges on the ground ahead, as a stairs policy that sees reads them: how near the
+    /// first is, how high it is, how near the second is (see [`crate::obs`]). Zero on flat
+    /// ground, and zero from anything that cannot see the ground ahead — the servo bus has no
+    /// such sensor; only the simulator measures it.
+    pub terrain: [f64; 3],
 }
 
 impl Default for Sensors {
@@ -31,6 +36,7 @@ impl Default for Sensors {
             velocities: [0.0; NUM_JOINTS],
             currents_ma: [0.0; NUM_JOINTS],
             imu: ImuData::default(),
+            terrain: [0.0; 3],
         }
     }
 }
