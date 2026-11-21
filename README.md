@@ -1,123 +1,178 @@
-# NCKH 2026–2027 · Robot vịt hai chân Microduck: leo bậc thang, vượt vật cản và nhặt đồ trong mô phỏng
+# NCKH 2026–2027 · Robot hai chân BIPED-C3 (60 cm): leo bậc thang, vượt vật cản và dọn đồ trong mô phỏng
 
 ## Giới thiệu
 
-**Microduck** là một robot hai chân hình con vịt, cao khoảng 25 cm, dùng 14 servo Dynamixel XL330. Robot
-không được lập trình từng bước đi: chuyển động của nó do các **mạng nơ-ron (policy, định dạng ONNX)**
-quyết định. Các mạng này được huấn luyện bằng **học tăng cường (PPO)** trong trình mô phỏng vật lý
-**MuJoCo**. Trên robot, chương trình `robotd` (viết bằng Rust) chạy vòng điều khiển 50 Hz: đọc cảm
-biến, đưa vào policy, rồi gửi lệnh cho servo. Cùng chương trình đó chạy được trong mô phỏng
-(`duck-sim`), nên những gì kiểm chứng trong mô phỏng là kiểm chứng trên đúng phần mềm của robot.
+**BIPED-C3** (chữ **TLS** trên ngực) là robot hai chân cao **60 cm**, nặng khoảng **4,5 kg**, có 14 khớp
+dùng servo **Dynamixel MX-106**. Nhóm thiết kế robot dưới dạng mô hình vật lý **MuJoCo**. Hiện robot
+chỉ có trong mô phỏng, chưa có bản cứng.
 
-Đề tài tập trung vào 4 việc:
+Robot không được lập trình từng bước đi. Chuyển động của nó do các **mạng nơ-ron (policy, định dạng
+ONNX)** quyết định. Các mạng này được huấn luyện bằng **học tăng cường (PPO)** trong MuJoCo.
 
-1. **Huấn luyện policy đi bộ leo lên và xuống bậc thang thấp.**
-2. **Tự điều hướng tới đích**, đi vòng qua vật cản bằng cảm biến khoảng cách ToF.
-3. **Demo nhặt đồ:** vịt đi khắp căn hộ mô phỏng, cúi xuống "nhặt" từng đồ vật, mang về một mốc đích.
-   Có camera để xem từ mắt vịt.
-4. **Phương pháp đánh giá khách quan:** chấm điểm theo vị trí thật trong mô phỏng, không theo
-   odometry hay đồ thị lúc huấn luyện.
+BIPED-C3 được thiết kế với cùng 14 khớp như robot vịt **Microduck** của Pollen Robotics: cùng tên,
+cùng thứ tự, cùng chiều quay và cùng tư thế đứng. Nhờ vậy chương trình điều khiển của Microduck,
+`robotd` (Rust, vòng điều khiển 50 Hz), chạy được trên BIPED-C3 mà không phải viết lại. `duck-sim` chạy
+đúng `robotd` đó với trình mô phỏng thay cho phần cứng. Vì vậy, kiểm chứng trong mô phỏng là kiểm chứng
+trên chính phần mềm sẽ chạy trên robot.
+
+Đề tài gồm 5 phần:
+
+1. **Đi bộ và vượt vật cản** trên sàn phẳng.
+2. **Leo lên rồi xuống cầu thang**: 5 bậc cao 3 cm, chiếu nghỉ, rồi 5 bậc xuống. Có một kỹ năng leo
+   riêng "nhìn thấy" mép bậc.
+3. **Đi trọn một đường đua**: bãi vật cản → cầu thang → vào căn hộ → **dọn đồ**. Robot tìm các đồ vật
+   đặt ngẫu nhiên trong các phòng và mang từng món về một đĩa đỏ.
+4. **Camera trên đầu robot có chống rung**, để xem từ mắt robot.
+5. **Đánh giá khách quan**: chấm theo vị trí thật trong mô phỏng, không theo đồ thị huấn luyện.
 
 ## Kết quả chính
 
-Tất cả kết quả đo trong `duck-sim` (MuJoCo + `robotd` thật), dùng vị trí thật do trình mô phỏng cung cấp.
+Tất cả kết quả đo trong `duck-sim` (MuJoCo + `robotd` thật).
 
-| Nhiệm vụ | Policy | Kết quả |
+| Bài | Policy | Kết quả |
 |---|---|---|
-| Lên 6 bậc cao 1 cm rồi xuống (đích 3 m) | `stairs_v8` (tự huấn luyện) | **8/8** tới đích ở tốc độ 0.35 (thêm 5/5 ở 0.3), 0 lần té. Có 1 lần chạy tay bị lệch hướng rồi kẹt |
-| Xuống 6 bậc cao 1 cm (đích 2 m) | `stairs_v8` | **5/5** ở tốc độ 0.35 (ở 0.3: 4/5, một lần không chịu bước) |
-| Vòng qua 3 hộp cao 20 cm (đích 2 m) | `seed-v1` (policy chính thức) | **2/2**, khoảng 19 s |
-| Nhặt 7 đồ vật trong căn hộ 6 phòng, mang về đích | `seed-v1` + `ground_pick` | **7/7** và **6/7** trong 2 lượt liên tiếp, khoảng 8 phút/lượt |
+| Vòng qua bãi vật cản tới đĩa đỏ | `alpha_walking` | Tới đích, khoảng **17 s** |
+| Cầu thang 5 bậc 3 cm lên + xuống | `alpha_walking` + kỹ năng `climb` | **5/5** lượt qua thang, **0 lần lùi bước**, 7,7–8,1 s mỗi lượt |
+| Trọn đường đua + dọn 5 đồ ngẫu nhiên | như trên | **5/5** đồ mang về đĩa, **0 lần đá đổ**, xong sau **320 s** (tới cửa căn hộ sau 38 s) |
+| Camera khi leo thang | bộ chống rung trong mô phỏng | Chân trời nghiêng **15° → 0°**; ảnh còn rung khoảng 9 px/khung hình (640×360) |
 
-> Phần **nhặt đồ là demo trong mô phỏng**: vịt mô phỏng không có khớp mỏ, nên khi mỏ chạm đồ vật, trình mô phỏng "gắn" đồ vào mỏ 
+Quá trình làm cho việc leo thang tốt dần lên, đo trên cùng cầu thang trong `duck-sim`:
+
+| Cách leo | Thời gian qua thang | Lùi bước / lượt | Ghi chú |
+|---|---|---|---|
+| Chỉ dùng policy đi bộ (`stairs_v5`) | 13,5 s | 2,4 | "Bước lên tuột xuống" |
+| Thêm kỹ năng leo `climb_v2` | 7–8 s | 0 (8/8 lượt) | Đầu nghiêng 17° suốt lúc leo |
+| Kỹ năng leo `climb_v5` (đang dùng) | 7,7–8,1 s | 0 | Đầu thẳng (nghiêng ~1°), thân bớt lắc (31,9 → 29,8 °/s) |
 
 ## Những gì đã làm
 
-### 1. Huấn luyện leo bậc thang: tìm ra vì sao policy không học leo
+### 1. Thiết kế robot
 
-Các policy được huấn luyện trong repo [`microduck_rl`](https://github.com/pollen-robotics/microduck_rl)
-(mjlab + MuJoCo Warp, PPO). Qua 6 phiên bản (v4 → v9), đề tài tìm và sửa được các nguyên nhân sau:
+Mô hình được sinh ra bằng một script, `make_biped60.py` trong repo huấn luyện. Script tạo ra:
 
-| Vấn đề phát hiện | Bằng chứng | Cách sửa |
+- bản dùng để huấn luyện: chỉ bàn chân chạm đất;
+- bản dùng trong mô phỏng: thân, đầu, chân đều va chạm với vật xung quanh;
+- lớp vỏ hiển thị.
+
+Servo được mô phỏng bằng mô hình **BAM** của MX-106, khớp với servo thật hơn bộ điều khiển PD có sẵn
+của MuJoCo: với PD thường, robot té trong chưa tới 1 giây. Khối lượng từng phần là ước lượng (servo +
+giá đỡ + vỏ), chưa phải số đo từ bản CAD.
+
+### 2. Huấn luyện đi bộ và leo thang
+
+Huấn luyện bằng mjlab + MuJoCo Warp, PPO, trên GPU RTX 4060 Laptop 8 GB (2048 môi trường song song,
+khoảng 2 s mỗi vòng).
+
+| Phiên bản | Ý chính | Kết quả |
 |---|---|---|
-| Curriculum địa hình mặc định của mjlab gần như **không bao giờ cho lên cấp**: điều kiện hạ cấp khắt khe hơn điều kiện lên cấp khi lệnh đổi hướng liên tục | Sau 6000 vòng, mức địa hình trung bình chỉ **0.24/9**: policy gần như chỉ học bậc dưới 1 cm | Viết curriculum riêng `terrain_levels_stairs`: lên cấp khi đi xa ≥ 1 m không té, xuống cấp khi té hoặc không rời bục. Mức đạt **~3.9/9** |
-| Chỉ có kim tự tháp bậc (xuất phát trên đỉnh), nên **"đi xa" thực chất là đi xuống**; leo lên chỉ tình cờ | v5 leo kém hơn v4 dù chỉ số huấn luyện đẹp hơn | Thêm kim tự tháp ngược (xuất phát dưới hố, đi ra là phải leo) |
-| Hàm `out_of_terrain_bounds` của mjlab tính bề rộng sân từ `num_cols` | Thêm loại địa hình thứ 5 thì env ở cột ngoài bị reset sau ~2 bước | Tính `num_cols` từ số loại địa hình |
-| Địa hình huấn luyện bị **làm mềm** (`solref` 0.04) để tránh lỗi NaN, nên mép bậc "lún" cho chân trượt qua | Trên bậc cứng, v6 kẹt 8/8 lần; làm mềm bậc thì leo được 2/3 lần | Huấn luyện trên địa hình cứng (`RIGID_TERRAIN`), không phát sinh NaN |
-| Reward nhấc chân (`foot_swing_height`) bị nhân với dt, chỉ bằng **~0.2%** reward bám vận tốc | Chân nhấc cao trung bình chỉ 1.35 cm ở mọi phiên bản | Tăng trọng số; chân nhấc **1.35 → 1.55 cm (v8) → 1.8 cm (v9)** |
+| `flat_v2` | Đi trên sàn phẳng, ép đối xứng trái/phải | Đứng yên, đi thẳng, quay tốt; té ngay bậc 3 cm đầu tiên |
+| `stairs_v2` | Học thêm trên bậc cao 1–5 cm | Lần đầu đi trọn đường đua (126 s) |
+| `stairs_v4` | Rải đều độ cao bậc, bỏ curriculum địa hình | Đường đua 96 s; thân lắc nhiều (37 °/s) |
+| `stairs_v5` | Thưởng giữ thân và đầu ổn định | Bớt lắc, camera bớt rung khoảng 35%; vẫn lùi bước trên thang. **Đang dùng để đi bộ** |
+| `climb_v2` | Kỹ năng leo riêng, nhìn thấy mép bậc | Hết lùi bước, leo nhanh gần gấp đôi |
+| `climb_v5` | Phạt lệnh khớp vượt giới hạn cơ khí | Hết nghiêng đầu, thân êm hơn. **Đang dùng để leo** |
 
-Lịch sử các phiên bản:
+Các vấn đề tìm ra và cách sửa:
 
-| Phiên bản | Thay đổi | Đánh giá trong `duck-sim` |
+| Vấn đề | Bằng chứng | Cách sửa |
 |---|---|---|
-| v4 | Cấu hình bậc thang ban đầu | Bậc 1 cm đi được; bậc 2 cm té |
-| v5 | Curriculum mới (train lại từ đầu) | Kém hơn v4: học đi xuống, không học leo |
-| v6 | + kim tự tháp ngược (fine-tune từ v4) | Kẹt ở bậc đầu khi leo (do địa hình mềm) |
-| v7 | + địa hình cứng | Leo lại được, nhưng trôi ngang nhiều |
-| **v8** | + phạt nhấc chân thấp mạnh hơn | **Tốt nhất trên bậc 1 cm** |
-| v9 | + phạt mạnh hơn nữa | Chân nhấc 1.8 cm, vẫn chưa qua được bậc 2 cm |
+| Reward bám tốc độ quay của mjlab tính cả tốc độ lắc ngang và lắc dọc của thân vào sai số quay. Trên bậc thang thân lắc nhiều nên reward này gần như bằng 0 | Policy quên cách quay: trong cùng một bài thử quay tại chỗ, góc quay được giảm từ 298° xuống 85° | Viết reward chỉ tính quay quanh trục đứng (`track_yaw_rate_exp`) |
+| Lúc huấn luyện, lệnh servo có độ trễ và vận tốc khớp đọc về bị cũ một nhịp (giống servo thật). Trình mô phỏng của `duck-sim` lại áp lệnh tức thì | Đánh giá trên CPU leo được, vào `duck-sim` thì té. Thử riêng từng khác biệt: chỉ cần độ trễ khác lúc huấn luyện (1 bước thay vì 3–6) là 0/3 lần leo được | Thêm độ trễ servo (4 bước) và vận tốc trễ vào trình mô phỏng cho khớp với lúc huấn luyện |
+| Policy đi bộ không nhìn thấy bậc. Bàn chân dài 15 cm, mặt bậc 30 cm, nên khoảng **50%** lần đặt chân khi lên thang bị gác lên mép bậc, dễ tuột xuống | Đo vị trí từng lần đặt chân | Huấn luyện một **kỹ năng leo riêng** nhận 3 thông tin về bậc phía trước: khoảng cách tới mép thứ nhất, độ cao của mép đó, khoảng cách tới mép thứ hai |
+| Phạt việc dẫm lên mép bậc thì policy **dừng hẳn trước cầu thang**, vì đứng yên thì không bị phạt | 4 lần thử (v8, v9, v9b, climb_v1): cải thiện rất ít, dừng trước bậc, hoặc không chịu leo | Thêm reward **tiến về phía trước** tăng tuyến tính, để đứng yên cũng bị thiệt |
+| Reward giữ đầu ổn định khiến policy **ra lệnh cho khớp đầu vượt qua chốt chặn cơ khí**: ép khớp vào chốt thì đầu cứng hơn là để PD giữ | Đầu nghiêng 17° suốt lúc leo, tới đỉnh thì lật sang bên kia. 81% thời gian khớp đầu bị ép vào chốt. Trên robot thật, servo sẽ đẩy vào chốt liên tục và nóng lên | Phạt mọi lệnh khớp vượt giới hạn (`joint_target_beyond_limits_l2`). Phạt góc nghiêng của đầu thì không có tác dụng, vì khớp đã kẹt ở chốt |
+| Leo chậm thì kém hơn | Trên bậc 3 cm: 0/6 lượt qua được ở 0,2 m/s, 5/6 ở 0,35 m/s, 6/6 ở 0,6 m/s | Các script cho robot đi nhanh hơn khi lên thang |
 
-### 2. Đánh giá và điều hướng (thư mục [`microduck/scripts/`](microduck/scripts))
+Bài học: **đánh giá trên CPU đạt chưa có nghĩa là trong `duck-sim` đạt**. Đã có lúc hai cách đo cho kết
+quả ngược nhau. Vì vậy mỗi policy đều được chạy trong `duck-sim` trước khi đưa vào dùng.
 
-- **`stairs-eval.py`**: chấm một hoặc nhiều policy trên 4 map (lên bậc, xuống bậc, bậc 1–3 cm, vật
-  cản). Mỗi lần chạy khởi động lại mô phỏng, cho vịt tự đi tới đích, rồi chấm theo **vị trí thật**
-  (odometry trên bậc thang lệch 8–17 cm).
-- **`duck-nav.py`**: điều hướng tới đích có tránh vật cản bằng ToF. Thêm tùy chọn `--retries` để vịt
-  tự đứng dậy và đi tiếp sau khi té.
-- **`duck-sim`**: vẫn chạy đầy đủ khi bật camera trên máy không build được `mediad` (GStreamer < 1.22).
+### 3. Nối kỹ năng leo vào `robotd`
 
-### 3. Demo nhặt đồ trong căn hộ: `duck-fetch.py`
+Những thay đổi ở `duck-control`, `robotd`, `robotd-params` và `robotctl`:
 
-Mỗi đồ vật đi qua đủ các bước: tìm đường A* qua 6 phòng (tránh tường, đồ đạc, hố cầu thang và các đồ
-vật khác) → đi tới, dừng cách đồ vật 10 cm và quay mặt về phía nó → cúi xuống bằng policy `ground_pick`
-→ "nhặt" khi mỏ chạm điểm thấp nhất → mang về khu đích, xếp theo lưới 3 × 3 → cúi xuống thả.
+- **Kỹ năng nối tiếp (`chain`)**: robot chuyển từ policy đi bộ sang kỹ năng `climb` mà không dừng bước.
+- **`live_twist`**: kỹ năng nhận lệnh tốc độ trực tiếp trong lúc chạy.
+- **Thông tin địa hình**: được đưa vào 3 ô của vector quan sát. Các policy không được huấn luyện với địa
+  hình thì 3 ô này luôn bằng 0. File ONNX được đánh dấu `sees_terrain=true` thì mới nhận dữ liệu thật.
 
-Một số điểm rút ra khi làm:
+`biped60-goal.py` và `biped60-fetch.py` tự gọi `robot.do climb` khi robot tới chân cầu thang.
 
-- **Policy đi bộ không bắt đầu quay được từ tư thế đứng yên.** Lệnh chỉ quay thì vịt chỉ lắc nhẹ.
-  Phải quay kèm nhích tới 0.2 m/s; muốn lùi phải ra lệnh từ −0.4.
-- **Bám đường đi theo tiến độ dọc đường**, không theo từng điểm mốc. Nếu không, vịt có thể chạy vòng
-  quanh một góc ngoặt mãi.
-- **Mỏ thường đậu lên nóc khối vuông** chứ không xuống tới sàn, nên phải "nhặt" ở điểm thấp nhất
-  thực tế, không theo một độ cao cố định.
+### 4. Camera chống rung
 
-### 4. Camera từ mắt vịt: `duck-cam.py`
+Rung của camera chủ yếu đến từ **đầu robot**, không phải từ thân: khi đi, đầu xoay nhanh gấp khoảng 3
+lần thân. Bộ chống rung (`sim/camera.py`) làm 4 việc:
 
-Xem trực tiếp hoặc chụp ảnh từ camera trên đầu vịt mô phỏng (640×360, khoảng 15 hình/giây). Ảnh được
-xoay đứng như trên console của robot thật. `duck-fetch.py --camera --snapshots` vừa mở cửa sổ camera,
-vừa tự chụp ảnh lúc tiếp cận đồ vật, lúc tới khu đích và sau khi thả.
+- giữ hướng nhìn theo hướng đi của thân, lọc qua 2 tầng 0,3 s;
+- làm mượt việc đầu nhún lên xuống và lắc ngang, tối đa 2,5 cm, không bao giờ lùi camera ra sau;
+- giữ đường chân trời luôn nằm ngang;
+- bỏ qua bước giữ ngang khi robot nhìn gần như thẳng xuống hoặc thẳng lên.
+
+Đo trên bản ghi lúc leo thang, so với bộ lọc đầu tiên:
+
+| Chỉ số | Bộ lọc đầu tiên | Bộ lọc hiện tại |
+|---|---|---|
+| Ảnh xoay mỗi khung hình | 7,9 px | 6,0 px |
+| Nhún | 19,6 mm | 14,4 mm |
+| Chân trời nghiêng | 15° | 0° |
+
+Đổi lại, khi robot cúi nhìn xuống, ảnh theo chậm hơn một chút.
+
+### 5. Dọn đồ: `biped60-fetch.py`
+
+- **Mỗi lượt đặt ngẫu nhiên** tối đa 6 món, lấy từ 10 loại đồ: khối vuông, lon, khối cao, sách.
+  Mỗi phòng có tối đa 2 món.
+- **Tìm đường bằng A\*** qua các phòng, tránh tường, đồ đạc, lỗ cầu thang và các món khác. Robot tính
+  một lần cho cả 16 hướng tiếp cận, mất 0,03–0,08 s.
+- **Tới gần món đồ**: vừa đi vừa cúi nhìn xuống, "nhặt" ngay khi với tới, bước ngang để canh cho thẳng.
+- **Mang về đĩa đỏ**, xếp quanh tâm đĩa.
+
+So với bản đầu, cùng 5 khối vuông: 328 s → 238 s.
 
 ## Cấu trúc repo
 
 ```
-.                    runtime gốc của Microduck (Pollen Robotics): robotd, tofd, mediad, robotctl...
-microduck/           bản làm việc của đề tài: runtime + các phần bổ sung bên dưới
+.                        runtime gốc của Microduck (Pollen Robotics)
+microduck/               bản làm việc của đề tài
 ├── scripts/
-│   ├── duck-sim         chạy robot trong MuJoCo (một lệnh)
-│   ├── duck-nav.py      tự đi tới đích, tránh vật cản      (+ --retries)
-│   ├── stairs-eval.py   chấm policy theo vị trí thật        (mới)
-│   ├── duck-fetch.py    demo nhặt đồ trong căn hộ           (mới)
-│   └── duck-cam.py      xem / chụp camera của vịt           (mới)
-├── policies/            vị trí các policy ONNX mà duck-sim nạp (xem lưu ý bên dưới)
-└── *.md                 ghi chú và hướng dẫn của nhóm
+│   ├── duck-sim             chạy robot trong MuJoCo bằng robotd thật (mặc định là BIPED-C3)
+│   ├── biped60-goal.py      đi tới đĩa đỏ: bãi vật cản, hoặc trọn đường đua
+│   ├── biped60-fetch.py     đi đường đua rồi dọn đồ ngẫu nhiên trong căn hộ
+│   ├── biped60-dance.py     bài nhảy (thử nghiệm, đã tạm dừng)
+│   └── duck-cam.py          xem / chụp camera trên đầu robot
+├── policies-biped60/        các policy ONNX mà duck-sim nạp
+├── duck-control/ robotd/ robotd-params/ robotctl/    runtime Rust (đã sửa, xem mục 3)
+└── ...                  phần còn lại của runtime Microduck
 ```
 
-Phần huấn luyện và trình mô phỏng nằm ở repo **`microduck_rl`** (bản có sửa đổi). Bản đó gồm curriculum
-`terrain_levels_stairs`, cấu hình bậc thang, các map `scene_steps*`, `scene_apartment_fetch`, và
-`sim/props.py`. <!-- TODO: link tới repo / fork microduck_rl của nhóm -->
+Các policy trong `policies-biped60/`:
 
-> **Lưu ý về policy:** các file trong `microduck/policies/` là liên kết tới file trên máy tác giả, nên
-> không dùng được sau khi clone. `duck-sim` tự tải bộ policy chính thức nếu không tìm thấy. Policy tự
-> huấn luyện (`stairs_v8.onnx`...) được phát hành riêng. <!-- TODO: link GitHub Releases -->
+| File | Vai trò |
+|---|---|
+| `alpha_walking.onnx` | Đi bộ chính (`stairs_v5`, vòng 9800) |
+| `climb.onnx` | Kỹ năng leo thang (`climb_v5`, vòng 11600) |
+| `climb_v2.onnx` | Bản leo cũ, để so sánh hoặc quay lại |
+| `alpha_walking_flat.onnx` | Chỉ đi sàn phẳng (`flat_v2`) |
+| `alpha_walking_stairs_v2.onnx`, `alpha_walking_stairs_v4.onnx`, `alpha_walking_iter3000.onnx` | Các bản cũ |
+| `alpha_dance.onnx` | Nhảy (`dance_v3`), chỉ dùng trên map `stage` |
+
+`duck-nav.py`, `stairs-eval.py`, `duck-fetch.py`, `evaluate_multiterrain.py` và các file `*.md` trong
+`microduck/` là từ giai đoạn trước, khi đề tài còn làm với Microduck. Không dùng chúng cho BIPED-C3:
+odometry và cảm biến ToF trong `robotd` vẫn tính theo mô hình của vịt.
+
+> **Lưu ý:** phần huấn luyện và trình mô phỏng nằm trong bản sửa đổi của repo
+> [`microduck_rl`](https://github.com/pollen-robotics/microduck_rl). Phần này gồm mô hình robot, các map,
+> các bài huấn luyện, trình mô phỏng `body_server` và bộ chống rung camera. Bản sửa đổi đó **chưa được
+> đưa lên GitHub**. Vì vậy sau khi clone repo này, `duck-sim` chưa chạy được nếu không có nó.
 
 ## Cài đặt
 
-Đã thử trên Ubuntu 22.04, GPU RTX 4060 Laptop 8 GB (chỉ cần GPU khi huấn luyện).
+Đã thử trên Ubuntu 22.04, GPU RTX 4060 Laptop 8 GB. Chỉ cần GPU khi huấn luyện; chạy mô phỏng chỉ cần
+CPU.
 
 1. **Rust** (`cargo`): `duck-sim` tự build `robotd`, `robotctl`, `tofd` ở lần chạy đầu.
-2. **`microduck_rl`** đặt tại `~/Pollen/microduck_rl` (hoặc đặt biến `DUCK_SIM_RL`), có sẵn môi trường
-   Python `.venv` chứa MuJoCo, mjlab, onnxruntime.
-3. **OpenCV** cho Python của hệ thống (để xem camera): `python3 -c "import cv2"`.
+2. **`microduck_rl`** (bản sửa đổi) đặt tại `~/Pollen/microduck_rl`, hoặc đặt biến `DUCK_SIM_RL`. Cần
+   môi trường Python `.venv` chứa MuJoCo, mjlab và onnxruntime.
+3. **OpenCV** cho Python của hệ thống, để xem camera: `python3 -c "import cv2"`.
 
 ```bash
 git clone https://github.com/LeNguyenTruongPhu/NCKH_2026-2027.git
@@ -126,82 +181,80 @@ cd NCKH_2026-2027/microduck
 
 ## Chạy mô phỏng
 
-Mỗi map cần 2–3 terminal, chạy trong thư mục `microduck/`. Policy được nạp **lúc mở map**, nên phải đổi
-policy *trước* khi chạy `duck-sim`:
+Chạy trong thư mục `microduck/`, mỗi lệnh một terminal:
 
 ```bash
-# map vật cản và căn hộ: policy chính thức seed-v1
-ln -sfn ~/.cache/duck-sim/policies/releases/seed-v1/alpha_walking.onnx policies/alpha_walking.onnx
-# map bậc thang: policy tự huấn luyện
-ln -sfn /đường/dẫn/tới/stairs_v8.onnx policies/alpha_walking.onnx
+DUCK_SIM_CAMERAS=a DUCK_SIM_SCENE=course scripts/duck-sim   # terminal 1: mở map đường đua
+scripts/biped60-fetch.py                                    # terminal 2: đi đường đua rồi dọn đồ
+scripts/duck-cam.py                                         # terminal 3: xem camera (s: lưu ảnh, q: thoát)
 ```
 
-| Map | Terminal 1: mở map | Terminal 3: cho vịt đi |
+Tắt mô phỏng: `scripts/duck-sim down`. Policy và bộ chống rung được nạp **lúc mở map**. Muốn đổi policy
+thì phải tắt mô phỏng rồi mở lại.
+
+| Map (`DUCK_SIM_SCENE`) | Nội dung | Lệnh ở terminal 2 |
 |---|---|---|
-| Vật cản | `DUCK_SIM_CAMERAS=a DUCK_SIM_SCENE=obstacles scripts/duck-sim` | `scripts/duck-nav.py --absolute 2 0 --step-over 0.08 --speed 0.35 --retries 2` |
-| Lên & xuống bậc | `DUCK_SIM_CAMERAS=a DUCK_SIM_SCENE=steps scripts/duck-sim` | `scripts/duck-nav.py --absolute 3.0 0 --step-over 0.08 --speed 0.35 --retries 2` |
-| Xuống bậc | `DUCK_SIM_CAMERAS=a DUCK_SIM_SCENE=steps_down DUCK_SIM_KEYFRAME=SIT_HIGH scripts/duck-sim` | `scripts/duck-nav.py --absolute 2 0 --step-over 0.08 --speed 0.35 --retries 2` |
+| `course` | Bãi vật cản → cầu thang → căn hộ | `scripts/biped60-fetch.py` (dọn đồ) hoặc `scripts/biped60-goal.py` (chỉ đi tới đích) |
+| `obstacles` | Bãi vật cản | `scripts/biped60-goal.py` |
+| `apartment_fetch` | Chỉ căn hộ | `scripts/biped60-fetch.py` |
+| `steps`, `steps_easy`, `steps_hard`, `steps_down`, `ramp` | Bậc thang các độ cao, dốc | Chưa có script dẫn đường riêng cho các map này |
+| `stage` | Sân khấu trống | `scripts/biped60-dance.py` |
 
-Terminal 2 (camera): `python3 scripts/duck-cam.py`. Trong cửa sổ, nhấn `s` để lưu ảnh, `q` để thoát.
-
-**Demo nhặt đồ** (cửa sổ camera tự mở):
-
-```bash
-DUCK_SIM_CAMERAS=a DUCK_SIM_SCENE=apartment_fetch scripts/duck-sim     # terminal 1
-python3 scripts/duck-fetch.py --camera --snapshots ~/duck-anh           # terminal 2
-```
-
-Tắt mô phỏng: `scripts/duck-sim down`. Nếu máy chậm làm vịt hay té, thêm `DUCK_SIM_VIEWER=0` để tắt
-cửa sổ 3D.
-
-## Đánh giá một policy
+Một số tùy chọn:
 
 ```bash
-python3 -u scripts/stairs-eval.py ~/Pollen/microduck_rl/exports/stairs_v8.onnx --runs 5
-python3 -u scripts/stairs-eval.py a.onnx b.onnx --courses up,down,obstacles --runs 5   # so sánh
+scripts/biped60-fetch.py --seed 7 --count 6     # lặp lại đúng một cách đặt đồ, 6 món
+scripts/biped60-fetch.py --keep                 # không đặt lại, dọn những món đang có
+DUCK_SIM_VIEWER=0 ...                           # tắt cửa sổ 3D nếu máy chậm
+DUCK_SIM_CAMERA_STABILIZE=off ...               # xem ảnh camera chưa chống rung, để so sánh
+DUCK_SIM_POLICIES=<thư-mục> ...                 # dùng bộ policy khác
 ```
+
+Muốn quay về bản leo cũ thì chép `policies-biped60/climb_v2.onnx` đè lên `climb.onnx`.
 
 ## Huấn luyện (trong `microduck_rl`)
 
-Ví dụ: v8 được fine-tune từ v7, khoảng 1.4 giờ trên RTX 4060.
-
 ```bash
-.venv/bin/train Mjlab-Velocity-Stairs-MicroDuck \
-  --env.scene.num-envs 2048 --env.sim.nconmax 100 --agent.max-iterations 2000 \
-  --agent.logger tensorboard --agent.run-name stairs_v8 \
-  --agent.resume True --agent.load-run <thư-mục-run-v7> --agent.load-checkpoint model_8998.pt \
-  --env.rewards.track-linear-velocity.weight 3.0 \
-  --env.rewards.foot-clearance.params.target-height 0.025 \
-  --env.rewards.foot-swing-height.params.target-height 0.025 \
-  --env.rewards.foot-swing-height.weight -4.0
+scripts/train_biped60.sh                                # đi sàn phẳng (Mjlab-Velocity-Flat-Biped60)
+scripts/train_biped60_stairs.sh 2000 <tên-run>          # học thêm trên bậc thang
+TASK=Mjlab-Velocity-Stairs-Climb-Biped60 \
+  FROM_RUN=<run-climb_v2> FROM_CKPT=model_10400.pt \
+  scripts/train_biped60_stairs.sh 1500 biped60_stairs_climb_v5   # kỹ năng leo
 
-.venv/bin/python scripts/export.py Mjlab-Velocity-Stairs-MicroDuck \
-  --checkpoint-file <run>/model_10997.pt --onnx-file exports/stairs_v8.onnx --num-envs 1
+.venv/bin/python scripts/export.py Mjlab-Velocity-Stairs-Climb-Biped60 \
+  --checkpoint-file <run>/model_11600.pt --onnx-file exports/climb.onnx --num-envs 1
 
-.venv/bin/tensorboard --logdir logs/rsl_rl/velocity_stairs     # xem biểu đồ huấn luyện
+.venv/bin/tensorboard --logdir logs/rsl_rl/biped60_velocity     # xem biểu đồ huấn luyện
 ```
 
-Bài học rút ra: **đồ thị huấn luyện đẹp không có nghĩa là robot đi tốt hơn**. Ví dụ, v5 có chỉ số
-huấn luyện tốt hơn v4 nhưng chạy thật kém hơn. Vì vậy mọi phiên bản đều phải chấm bằng `stairs-eval.py`
-trước khi dùng.
+Hai script đánh giá trên CPU, chạy nhanh hơn `duck-sim`:
+
+- `scripts/biped60_eval.py`: các bài đứng yên, đi, lùi, bước ngang, quay, tới đích.
+- `scripts/biped60_stairs_rate.py`: tỉ lệ qua cầu thang theo từng độ cao bậc.
+
+Sau cùng vẫn phải chạy lại trong `duck-sim`.
 
 ## Hạn chế
 
-- **Mọi kết quả đều trong mô phỏng**, chưa thử trên robot thật.
-- **Bậc thang chỉ tới khoảng 1 cm.** Policy "mù" (không nhìn thấy bậc) đi được bậc 1 cm nhưng té ở bậc
-  2 cm, vì chân nhấc cao tối đa khoảng 1.8 cm.
-- **Policy leo bậc (v8) quay kém**: đứng im khi phải vừa xuất phát vừa rẽ, và tự lệch trái khi đi
-  thẳng (khoảng 9°/s). Vì vậy map vật cản và căn hộ đang dùng policy chính thức `seed-v1`.
-- **Nhặt đồ là mẹo của mô phỏng:** vịt mô phỏng không có khớp mỏ nên không gắp thật. Script cũng lấy
-  vị trí đồ vật, tường và chính con vịt trực tiếp từ trình mô phỏng, thứ mà robot thật không có.
-- **Cả hai policy chỉ đi được khoảng một nửa tốc độ được lệnh** và bỏ qua lệnh dưới 0.2 m/s khi đang
-  đứng yên.
+- **Mọi kết quả đều trong mô phỏng.** BIPED-C3 chưa có bản cứng. Khối lượng là ước lượng, chưa có số đo
+  từ CAD.
+- **Cầu thang chỉ thử tới bậc 3 cm**, đi thẳng vào thang. Kỹ năng leo được huấn luyện với bậc 2–4 cm.
+- **Robot "nhìn thấy" bậc nhờ đọc bản đồ của trình mô phỏng.** Trên robot thật, cần cảm biến (ToF,
+  camera độ sâu) để đo mép bậc.
+- **Các script dẫn đường lấy vị trí robot trực tiếp từ trình mô phỏng.** Odometry của `robotd` vẫn tính
+  theo mô hình của vịt nên chưa dùng được.
+- **Nhặt đồ là mẹo của mô phỏng.** Robot không có tay hay mỏ để gắp; trình mô phỏng "gắn" đồ vào robot
+  khi chạm tới.
+- **Phần làm mượt vị trí camera chỉ có trong mô phỏng.** Camera thật không dịch chuyển được. Muốn giữ
+  ngang chân trời thì phải xoay và cắt ảnh.
+- **Thân robot vẫn lắc khoảng 30 °/s khi leo.** Phạt lắc mạnh hơn thì robot dừng trước bậc thay vì leo.
+- **Bước ngang còn yếu** (đi được khoảng 0,5 m khi được lệnh 1,25 m). Robot đi khoảng 85% tốc độ được
+  lệnh.
 
 ## Hướng phát triển
 
-- Huấn luyện **v10**: một policy vừa leo bậc vừa quay tốt (thêm sàn phẳng và bài tập quay tại chỗ).
-- Thử policy đi bộ mới của Pollen (`velstand`), được mô tả là bám lệnh quay tốt hơn.
-- Cho policy **nhìn thấy bậc** (cảm biến ToF hoặc camera) để vượt bậc cao hơn.
-- Thêm **khớp mỏ** vào mô hình MuJoCo theo robot thật và huấn luyện kỹ năng ngậm đồ thật.
-- Kiểm chứng trên **robot thật**.
-
+- Dùng cảm biến thật (ToF hoặc camera độ sâu) để đo bậc, và huấn luyện với dữ liệu cảm biến có nhiễu.
+- Viết odometry theo mô hình BIPED-C3 để robot tự dẫn đường, không cần vị trí từ trình mô phỏng.
+- Kỹ năng leo bậc cao hơn, cầu thang có chỗ rẽ, và đi xuống mượt hơn.
+- Thiết kế CAD và kiểm chứng trên robot thật.
+- Đưa bản sửa đổi của `microduck_rl` lên GitHub để người khác chạy lại được.
