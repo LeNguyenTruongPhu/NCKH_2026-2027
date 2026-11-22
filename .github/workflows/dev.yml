@@ -34,6 +34,9 @@ env:
 
 jobs:
   publish:
+    # Pollen's repository only: a fork has no `MINISIGN_DEV_SECRET_KEY` (the step refuses to publish
+    # unsigned builds), and a dev build for Pollen's boards is not what a fork is for.
+    if: github.repository == 'pollen-robotics/microduck'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
