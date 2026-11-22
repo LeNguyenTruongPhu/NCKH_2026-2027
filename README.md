@@ -119,8 +119,8 @@ lần thân. Bộ chống rung (`sim/camera.py`) làm 4 việc:
 
 ### 5. Dọn đồ: `biped60-fetch.py`
 
-- **Mỗi lượt đặt ngẫu nhiên** tối đa 6 món, lấy từ 10 loại đồ: khối vuông, lon, khối cao, sách.
-  Mỗi phòng có tối đa 2 món.
+- **Mỗi lượt đặt ngẫu nhiên** 5 khối lập phương 8 cm, mỗi khối một màu, vào các chỗ khác nhau.
+  Mỗi phòng có tối đa 2 khối.
 - **Tìm đường bằng A\*** qua các phòng, tránh tường, đồ đạc, lỗ cầu thang và các món khác. Robot tính
   một lần cho cả 16 hướng tiếp cận, mất 0,03–0,08 s.
 - **Tới gần món đồ**: vừa đi vừa cúi nhìn xuống, "nhặt" ngay khi với tới, bước ngang để canh cho thẳng.
@@ -203,7 +203,7 @@ thì phải tắt mô phỏng rồi mở lại.
 Một số tùy chọn:
 
 ```bash
-scripts/biped60-fetch.py --seed 7 --count 6     # lặp lại đúng một cách đặt đồ, 6 món
+scripts/biped60-fetch.py --seed 7               # lặp lại đúng một cách đặt đồ
 scripts/biped60-fetch.py --keep                 # không đặt lại, dọn những món đang có
 DUCK_SIM_VIEWER=0 ...                           # tắt cửa sổ 3D nếu máy chậm
 DUCK_SIM_CAMERA_STABILIZE=off ...               # xem ảnh camera chưa chống rung, để so sánh

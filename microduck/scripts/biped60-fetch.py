@@ -10,9 +10,8 @@ office, puts it down there, and stops on the disc — a simulator demo.
     scripts/biped60-fetch.py --seed 42                                     # the round seed 42 lays out, again
     scripts/biped60-fetch.py --keep --only blue_cube,green_cube            # as they lie now, some of them
 
-**Every round is different.** The scene has ten things in four shapes (cubes, cans, tall blocks, a
-book — `make_course.PROPS`); a round picks `--count` of them at random (5 by default, 6 at most:
-the disc's ring holds six) and scatters them over the apartment's floor — each well clear of walls
+**Every round is different.** The scene has five 8 cm cubes, one colour each (`make_course.PROPS`);
+a round puts out `--count` of them (all five by default) and scatters them over the apartment's floor — each well clear of walls
 and furniture, of the disc, of the others and of where the robot starts, and somewhere it can walk
 to — and puts the rest away (the simulator's `place`/`stow`). It prints its seed; `--seed` lays the
 same round out again, `--keep` fetches things where they already are.
@@ -119,7 +118,7 @@ FACE_TOLERANCE = math.radians(12)
 ALIGN_TOLERANCE = 0.05  # how near `align` gets the thing to straight ahead at its reach
 ALIGN_VX = 0.12
 ALIGN_VY = 0.12        # and a sideways step for what is off to one side, instead of a turn and back
-MAX_COUNT = 6          # the disc's ring holds six with room to walk in between two
+MAX_COUNT = 5          # the scene has five cubes (the disc's ring would hold six)
 WALL_CLEAR = 0.65      # a scattered thing lies this far from walls and furniture (and out of 1.2 m doorways)...
 SPREAD = 1.0           # ...this far from the next one,
 DISC_CLEAR = 0.7       # ...this far past the disc's edge,
