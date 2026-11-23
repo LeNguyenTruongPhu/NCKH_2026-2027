@@ -1,0 +1,18 @@
+run,task,started,envs,from_checkpoint,first_iteration,last_iteration,iterations_done,wall_time,steps_per_s_mean,iteration_time_s_mean,mean_reward_last50,mean_episode_length_last50,status,attempts_failed,checkpoints_saved
+2026-11-18_22-34-43_biped60_flat_v1,Mjlab-Velocity-Flat-Biped60,2026-11-18 22:34:35,4096,(from scratch),0,481,482,00:19:48,39903,2.47,95.84,953.74,stopped early,0,2
+2026-11-18_22-55-07_biped60_flat_v2,Mjlab-Velocity-Flat-Biped60,2026-11-18 22:54:59,4096,(from scratch),0,5999,6000,04:26:21,36909,2.66,191.78,998.98,finished,0,25
+2026-11-19_12-42-21_biped60_stairs_v1,Mjlab-Velocity-Stairs-Biped60,2026-11-19 12:42:14,2048,2026-11-18_22-55-07_biped60_flat_v2/model_5999.pt,5999,8066,2068,01:05:42,25788,1.91,58.49,673.61,stopped early,1,9
+2026-11-19_13-50-17_biped60_stairs_v2,Mjlab-Velocity-Stairs-Biped60,2026-11-19 13:50:10,2048,2026-11-18_22-55-07_biped60_flat_v2/model_5999.pt,5999,8998,3000,01:34:39,25971,1.89,77.85,751.61,finished,0,13
+2026-11-19_16-02-00_biped60_stairs_v3,Mjlab-Velocity-Stairs-Biped60,2026-11-19 16:01:52,2048,2026-11-19_13-50-17_biped60_stairs_v2/model_8000.pt,8000,9999,2000,01:03:28,25820,1.9,111.01,802.61,finished,0,21
+2026-11-19_17-13-14_biped60_stairs_v4,Mjlab-Velocity-Stairs-Biped60,2026-11-19 17:13:07,2048,2026-11-19_13-50-17_biped60_stairs_v2/model_8000.pt,8000,9499,1500,00:47:23,25933,1.9,114.26,853.28,finished,0,16
+2026-11-20_10-36-07_biped60_stairs_v5,Mjlab-Velocity-Stairs-Biped60,2026-11-20 10:36:00,2048,2026-11-19_17-13-14_biped60_stairs_v4/model_9000.pt,9000,10104,1105,00:35:31,25493,1.93,136.14,874.83,stopped early,0,12
+2026-11-20_11-12-27_biped60_stairs_v6,Mjlab-Velocity-Stairs-Biped60,2026-11-20 11:12:20,2048,2026-11-20_10-36-07_biped60_stairs_v5/model_10100.pt,10100,10736,637,00:20:37,25310,1.94,138.99,871.88,stopped early,0,7
+2026-11-20_11-33-58_biped60_stairs_v7,Mjlab-Velocity-Stairs-Biped60,2026-11-20 11:33:51,2048,2026-11-19_17-13-14_biped60_stairs_v4/model_9000.pt,9000,9705,706,00:22:44,25442,1.93,116.05,851.28,stopped early,0,8
+2026-11-20_21-13-32_biped60_stairs_v8,Mjlab-Velocity-Stairs-Biped60,2026-11-20 21:13:25,2048,2026-11-20_10-36-07_biped60_stairs_v5/model_9800.pt,9800,10403,604,00:19:50,24949,1.97,134.92,873.84,stopped early,0,7
+2026-11-20_21-35-57_biped60_stairs_v9_seed,,,,,,,,,,,,,,,1
+2026-11-20_21-59-48_biped60_stairs_v9b,Mjlab-Velocity-Stairs-Seeing-Biped60,2026-11-20 21:59:40,2048,2026-11-20_21-35-57_biped60_stairs_v9_seed/model_9800.pt,9800,10643,844,00:28:23,24365,2.02,140.44,878.15,stopped early,0,9
+2026-11-20_22-41-19_biped60_stairs_climb_v2,Mjlab-Velocity-Stairs-Climb-Biped60,2026-11-20 22:41:12,2048,2026-11-20_21-35-57_biped60_stairs_v9_seed/model_9800.pt,9800,10923,1124,00:30:52,29840,1.65,188.82,881.93,stopped early,0,12
+2026-11-21_13-56-31_biped60_stairs_climb_v3,Mjlab-Velocity-Stairs-Climb-Biped60,2026-11-21 13:56:23,2048,2026-11-20_22-41-19_biped60_stairs_climb_v2/model_10400.pt,10400,10671,272,00:07:36,29341,1.68,188.43,879.44,stopped early,0,3
+2026-11-21_14-04-50_biped60_stairs_climb_v4,Mjlab-Velocity-Stairs-Climb-Biped60,2026-11-21 14:04:43,2048,2026-11-20_22-41-19_biped60_stairs_climb_v2/model_10400.pt,10400,11043,644,00:18:14,28927,1.7,193.41,879.95,stopped early,0,7
+2026-11-21_14-23-39_biped60_stairs_climb_v5,Mjlab-Velocity-Stairs-Climb-Biped60,2026-11-21 14:23:31,2048,2026-11-20_22-41-19_biped60_stairs_climb_v2/model_10400.pt,10400,11899,1500,00:42:47,28731,1.71,204.27,877.81,finished,0,16
+biped60_stairs_climb_v1,Mjlab-Velocity-Stairs-Climb-Biped60,2026-11-20 22:29:49,2048,2026-11-20_21-35-57_biped60_stairs_v9_seed/model_9800.pt,9800,10164,365,00:10:00,29905,1.65,202.05,982.63,stopped early,0,
