@@ -1,0 +1,15 @@
+# Kiểm tra chéo trên CPU MuJoCo (2026-11-23): policy đi bộ alpha_walking.onnx (stairs_v5 model_9800)
+# đi qua scene_ramp.xml của BIPED-C3: dốc lên 6,7 % (dựng bằng khối hộp, không phải heightfield),
+# chiếu nghỉ cao 8 cm, dốc xuống. Có mô hình servo BAM, độ trễ servo và vận tốc khớp trễ như lúc train.
+# Ngã = thân nghiêng quá 70°, như điều kiện "fell_over" của bài test GPU. Chạy: ramp_cpu_crosscheck.py
+speed 0.3 x0 -0.3: ok   at t  20.0 s, x 1.65 (ramp 0.8-4.0), trunk rose +0.083
+speed 0.3 x0 +0.0: ok   at t  20.0 s, x 1.83 (ramp 0.8-4.0), trunk rose +0.096
+speed 0.3 x0 +0.2: ok   at t  20.0 s, x 1.80 (ramp 0.8-4.0), trunk rose +0.096
+speed 0.45 x0 -0.3: ok   at t  16.0 s, x 4.60 (ramp 0.8-4.0), trunk rose +0.106
+speed 0.45 x0 +0.0: ok   at t  15.1 s, x 4.60 (ramp 0.8-4.0), trunk rose +0.107
+speed 0.45 x0 +0.2: ok   at t  14.7 s, x 4.61 (ramp 0.8-4.0), trunk rose +0.107
+speed 0.6 x0 -0.3: ok   at t  11.8 s, x 4.61 (ramp 0.8-4.0), trunk rose +0.107
+speed 0.6 x0 +0.0: ok   at t  11.6 s, x 4.60 (ramp 0.8-4.0), trunk rose +0.105
+speed 0.6 x0 +0.2: ok   at t  10.6 s, x 4.61 (ramp 0.8-4.0), trunk rose +0.105
+# Kết quả: 0/9 ngã. Ở 0,45 và 0,6 m/s robot qua hết dốc (lên rồi xuống). Ở 0,3 m/s robot không ngã
+# nhưng đứng lại giữa dốc lên (x 1,65-1,83 sau 20 s).
