@@ -1,0 +1,115 @@
+<mxfile host="app.diagrams.net" type="device">
+  <diagram id="fig2-robot" name="Hinh 2 - So do khop BIPED-C3">
+    <mxGraphModel dx="800" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="n_trunk_neck_pitch" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#888888;strokeWidth=3.5;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="trunk" target="neck_pitch">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n_neck_pitch_head_pitch" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#888888;strokeWidth=3.5;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="neck_pitch" target="head_pitch">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n_head_pitch_head_yaw" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#888888;strokeWidth=3.5;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="head_pitch" target="head_yaw">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n_head_yaw_head_roll" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#888888;strokeWidth=3.5;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="head_yaw" target="head_roll">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n_head_roll_head" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#888888;strokeWidth=3.5;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="head_roll" target="head">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="L_hip" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#888888;strokeWidth=3.8;exitX=0.1809;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="trunk" target="L_hip_yaw">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="L_L_hip_yaw_L_hip_roll" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#888888;strokeWidth=3.8;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="L_hip_yaw" target="L_hip_roll">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="L_L_hip_roll_L_hip_pitch" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#888888;strokeWidth=3.8;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="L_hip_roll" target="L_hip_pitch">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="L_L_hip_pitch_L_knee" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#888888;strokeWidth=3.8;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="L_hip_pitch" target="L_knee">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="L_L_knee_L_ankle" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#888888;strokeWidth=3.8;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="L_knee" target="L_ankle">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="R_hip" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#888888;strokeWidth=3.8;exitX=0.8191;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="trunk" target="R_hip_yaw">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="R_R_hip_yaw_R_hip_roll" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#888888;strokeWidth=3.8;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="R_hip_yaw" target="R_hip_roll">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="R_R_hip_roll_R_hip_pitch" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#888888;strokeWidth=3.8;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="R_hip_roll" target="R_hip_pitch">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="R_R_hip_pitch_R_knee" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#888888;strokeWidth=3.8;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="R_hip_pitch" target="R_knee">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="R_R_knee_R_ankle" value="" style="endArrow=none;html=1;rounded=0;strokeColor=#888888;strokeWidth=3.8;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="R_knee" target="R_ankle">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="trunk" value="Thân&lt;br&gt;(IMU)&lt;br&gt;&amp;quot;TLS&amp;quot;" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#f4f4f4;strokeColor=#888888;fontColor=#555555;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="180.8" y="196.8" width="150.4" height="134.4" as="geometry" />
+        </mxCell>
+        <mxCell id="head" value="Đầu + camera" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#f4f4f4;strokeColor=#888888;fontColor=#555555;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="188.8" y="20.8" width="134.4" height="59.2" as="geometry" />
+        </mxCell>
+        <mxCell id="neck_pitch" value="neck_pitch" style="ellipse;whiteSpace=nowrap;html=1;aspect=fixed;fillColor=#ffffff;strokeColor=#f47230;strokeWidth=2.5;verticalLabelPosition=middle;verticalAlign=middle;labelPosition=right;align=left;spacingLeft=6;fontSize=12;fontColor=#191919;" vertex="1" parent="1">
+          <mxGeometry x="244.0" y="170.4" width="24.0" height="24.0" as="geometry" />
+        </mxCell>
+        <mxCell id="head_pitch" value="head_pitch" style="ellipse;whiteSpace=nowrap;html=1;aspect=fixed;fillColor=#ffffff;strokeColor=#f47230;strokeWidth=2.5;verticalLabelPosition=middle;verticalAlign=middle;labelPosition=right;align=left;spacingLeft=6;fontSize=12;fontColor=#191919;" vertex="1" parent="1">
+          <mxGeometry x="244.0" y="141.6" width="24.0" height="24.0" as="geometry" />
+        </mxCell>
+        <mxCell id="head_yaw" value="head_yaw" style="ellipse;whiteSpace=nowrap;html=1;aspect=fixed;fillColor=#ffffff;strokeColor=#f47230;strokeWidth=2.5;verticalLabelPosition=middle;verticalAlign=middle;labelPosition=right;align=left;spacingLeft=6;fontSize=12;fontColor=#191919;" vertex="1" parent="1">
+          <mxGeometry x="244.0" y="112.8" width="24.0" height="24.0" as="geometry" />
+        </mxCell>
+        <mxCell id="head_roll" value="head_roll" style="ellipse;whiteSpace=nowrap;html=1;aspect=fixed;fillColor=#ffffff;strokeColor=#f47230;strokeWidth=2.5;verticalLabelPosition=middle;verticalAlign=middle;labelPosition=right;align=left;spacingLeft=6;fontSize=12;fontColor=#191919;" vertex="1" parent="1">
+          <mxGeometry x="244.0" y="84.0" width="24.0" height="24.0" as="geometry" />
+        </mxCell>
+        <mxCell id="L_hip_yaw" value="hip_yaw" style="ellipse;whiteSpace=nowrap;html=1;aspect=fixed;fillColor=#ffffff;strokeColor=#257de0;strokeWidth=2.5;verticalLabelPosition=middle;verticalAlign=middle;labelPosition=left;align=right;spacingRight=6;fontSize=12;fontColor=#191919;" vertex="1" parent="1">
+          <mxGeometry x="196.0" y="348.0" width="24.0" height="24.0" as="geometry" />
+        </mxCell>
+        <mxCell id="L_hip_roll" value="hip_roll" style="ellipse;whiteSpace=nowrap;html=1;aspect=fixed;fillColor=#ffffff;strokeColor=#257de0;strokeWidth=2.5;verticalLabelPosition=middle;verticalAlign=middle;labelPosition=left;align=right;spacingRight=6;fontSize=12;fontColor=#191919;" vertex="1" parent="1">
+          <mxGeometry x="196.0" y="376.8" width="24.0" height="24.0" as="geometry" />
+        </mxCell>
+        <mxCell id="L_hip_pitch" value="hip_pitch" style="ellipse;whiteSpace=nowrap;html=1;aspect=fixed;fillColor=#ffffff;strokeColor=#257de0;strokeWidth=2.5;verticalLabelPosition=middle;verticalAlign=middle;labelPosition=left;align=right;spacingRight=6;fontSize=12;fontColor=#191919;" vertex="1" parent="1">
+          <mxGeometry x="196.0" y="404.0" width="24.0" height="24.0" as="geometry" />
+        </mxCell>
+        <mxCell id="L_knee" value="knee" style="ellipse;whiteSpace=nowrap;html=1;aspect=fixed;fillColor=#ffffff;strokeColor=#257de0;strokeWidth=2.5;verticalLabelPosition=middle;verticalAlign=middle;labelPosition=left;align=right;spacingRight=6;fontSize=12;fontColor=#191919;" vertex="1" parent="1">
+          <mxGeometry x="196.0" y="476.0" width="24.0" height="24.0" as="geometry" />
+        </mxCell>
+        <mxCell id="L_ankle" value="ankle" style="ellipse;whiteSpace=nowrap;html=1;aspect=fixed;fillColor=#ffffff;strokeColor=#257de0;strokeWidth=2.5;verticalLabelPosition=middle;verticalAlign=middle;labelPosition=left;align=right;spacingRight=6;fontSize=12;fontColor=#191919;" vertex="1" parent="1">
+          <mxGeometry x="196.0" y="535.2" width="24.0" height="24.0" as="geometry" />
+        </mxCell>
+        <mxCell id="L_foot" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#cccccc;strokeColor=#888888;" vertex="1" parent="1">
+          <mxGeometry x="172.8" y="555.2" width="70.4" height="12.8" as="geometry" />
+        </mxCell>
+        <mxCell id="R_hip_yaw" value="hip_yaw" style="ellipse;whiteSpace=nowrap;html=1;aspect=fixed;fillColor=#ffffff;strokeColor=#257de0;strokeWidth=2.5;verticalLabelPosition=middle;verticalAlign=middle;labelPosition=right;align=left;spacingLeft=6;fontSize=12;fontColor=#191919;" vertex="1" parent="1">
+          <mxGeometry x="292.0" y="348.0" width="24.0" height="24.0" as="geometry" />
+        </mxCell>
+        <mxCell id="R_hip_roll" value="hip_roll" style="ellipse;whiteSpace=nowrap;html=1;aspect=fixed;fillColor=#ffffff;strokeColor=#257de0;strokeWidth=2.5;verticalLabelPosition=middle;verticalAlign=middle;labelPosition=right;align=left;spacingLeft=6;fontSize=12;fontColor=#191919;" vertex="1" parent="1">
+          <mxGeometry x="292.0" y="376.8" width="24.0" height="24.0" as="geometry" />
+        </mxCell>
+        <mxCell id="R_hip_pitch" value="hip_pitch" style="ellipse;whiteSpace=nowrap;html=1;aspect=fixed;fillColor=#ffffff;strokeColor=#257de0;strokeWidth=2.5;verticalLabelPosition=middle;verticalAlign=middle;labelPosition=right;align=left;spacingLeft=6;fontSize=12;fontColor=#191919;" vertex="1" parent="1">
+          <mxGeometry x="292.0" y="404.0" width="24.0" height="24.0" as="geometry" />
+        </mxCell>
+        <mxCell id="R_knee" value="knee" style="ellipse;whiteSpace=nowrap;html=1;aspect=fixed;fillColor=#ffffff;strokeColor=#257de0;strokeWidth=2.5;verticalLabelPosition=middle;verticalAlign=middle;labelPosition=right;align=left;spacingLeft=6;fontSize=12;fontColor=#191919;" vertex="1" parent="1">
+          <mxGeometry x="292.0" y="476.0" width="24.0" height="24.0" as="geometry" />
+        </mxCell>
+        <mxCell id="R_ankle" value="ankle" style="ellipse;whiteSpace=nowrap;html=1;aspect=fixed;fillColor=#ffffff;strokeColor=#257de0;strokeWidth=2.5;verticalLabelPosition=middle;verticalAlign=middle;labelPosition=right;align=left;spacingLeft=6;fontSize=12;fontColor=#191919;" vertex="1" parent="1">
+          <mxGeometry x="292.0" y="535.2" width="24.0" height="24.0" as="geometry" />
+        </mxCell>
+        <mxCell id="R_foot" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#cccccc;strokeColor=#888888;" vertex="1" parent="1">
+          <mxGeometry x="268.8" y="555.2" width="70.4" height="12.8" as="geometry" />
+        </mxCell>
+        <mxCell id="foot_lbl" value="Bàn chân dài 15 cm" style="text;html=1;align=center;verticalAlign=middle;fontSize=11;fontColor=#555555;" vertex="1" parent="1">
+          <mxGeometry x="160.0" y="576.0" width="192.0" height="22.4" as="geometry" />
+        </mxCell>
+        <mxCell id="note" value="Chân: 5 khớp × 2 = 10&lt;br&gt;Đầu–cổ: 4 khớp&lt;br&gt;Tổng: 14 servo MX-106&lt;br&gt;Cao 60 cm · ~4,5 kg" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#dddddd;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;fontSize=12;fontColor=#191919;" vertex="1" parent="1">
+          <mxGeometry x="8.0" y="24.0" width="160.0" height="75.2" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
